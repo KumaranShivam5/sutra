@@ -1,0 +1,16 @@
+[theme]
+
+base="dark"
+primaryColor="#ad4949"
+secondaryColor="#fbd48a"
+backgroundColor = 'black'
+baseFontSize = 18
+
+[logger]
+level = "error"
+
+[client]
+showErrorDetails = false
+
+[global]
+showWarningOnDirectExecution = false

@@ -1,0 +1,18 @@
+Metadata-Version: 2.4
+Name: sutra
+Version: 0.2.1
+Summary: filament identification and characterisation framework
+Author-email: kumaran <kumaran@sac.isro.gov.in>
+Requires-Python: >=3.9
+Requires-Dist: streamlit
+Requires-Dist: astropy
+Requires-Dist: matplotlib
+Requires-Dist: tensorflow
+Requires-Dist: keras
+Requires-Dist: pandas
+Requires-Dist: reproject
+Requires-Dist: dill
+Requires-Dist: tqdm
+Requires-Dist: seaborn
+Requires-Dist: plotly
+Requires-Dist: shapely

@@ -1,0 +1,12 @@
+streamlit
+astropy
+matplotlib
+tensorflow
+keras
+pandas
+reproject
+dill
+tqdm
+seaborn
+plotly
+shapely

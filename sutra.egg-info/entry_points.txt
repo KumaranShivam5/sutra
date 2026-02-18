@@ -1,0 +1,3 @@
+[console_scripts]
+sutraTracer = sutra.CLI:main
+sutraWeb = sutra.WEB:main

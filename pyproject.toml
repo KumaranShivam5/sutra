@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sutra"
+version = "0.2.1"
+description = "filament identification and characterisation framework"
+authors = [{name = "kumaran", email = "kumaran@sac.isro.gov.in"}]
+requires-python = ">=3.9"
+# If your code depends on third‑party libs, list them here:
+dependencies = ["streamlit" , "astropy", "matplotlib", "tensorflow" , "keras", "pandas", "reproject" , "dill", "tqdm", "seaborn", "plotly", "shapely"]
+
+
+[project.scripts]
+sutraWeb = "sutra.WEB:main"
+sutraTracer = "sutra.CLI:main"
