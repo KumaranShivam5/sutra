@@ -1,5 +1,5 @@
 # SUTRA : Filaments in the ISM
-_Filament identificaitonj and characterisation framework_
+_Filament identificaiton and characterisation framework_
 
 ---
 
