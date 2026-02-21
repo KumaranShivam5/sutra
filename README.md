@@ -56,7 +56,7 @@ options:
   -t THRESHOLD, --threshold THRESHOLD
                         Threshold to convert model output to skeleton map
   -m MODEL, --model MODEL
-                        Threshold to convert model output to skeleton map
+                        Dictionay key-name storing the path to trained model weights
 
 ```
 
@@ -76,7 +76,7 @@ monr2_crop = fits.open('<cd-fits-file>')
 ```
 
 ```python
-prob_map = FID('HiGAL').predict(monr2_crop[0], window_overlap_frac = 0.95, batch_size = None, n_jobs = 1)
+prob_map = FID('HGBS').predict(monr2_crop[0], window_overlap_frac = 0.95, batch_size = None, n_jobs = 1)
 ```
 ```python
 
