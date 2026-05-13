@@ -1,7 +1,11 @@
 # SUTRA : Filaments in the ISM
-_Filament identificaiton and characterisation framework_
+_An integrated Framework for identificaiton and characterisation of filaments in the ISM_
 
+> Shivam Kumaran $^*$, Ushasi Bhowmick, Vipin Kumar, Manish Chauhan, Munn V Shukla, Mehul R Pandya
+- $*$ kumaranshivam57@gmail.com, kumaran@sac.isro.gov.in
 ---
+
+
 
 The package can be used as a standalone web application or can be imported as Python library
 
