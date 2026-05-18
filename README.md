@@ -5,7 +5,7 @@ _An integrated Framework for identificaiton and characterisation of filaments in
 - $*$ kumaranshivam57@gmail.com, kumaran@sac.isro.gov.in
 ---
 
-
+> Link to Interactive poster presented at _Astronomical Society of India Meeting_ 2026 : <a href="https://sutra.zenkumaran.in">Sutra Poster</a>
 
 The package can be used as a standalone web application or can be imported as Python library
 
