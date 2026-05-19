@@ -5,6 +5,9 @@ _An integrated Framework for identificaiton and characterisation of filaments in
 - $*$ kumaranshivam57@gmail.com, kumaran@sac.isro.gov.in
 ---
 
+poster presented at ASI - 2026 : https://sutra.zenkumaran.in
+
+
 The package can be used as a standalone web application or can be imported as Python library
 
 ## Installation
