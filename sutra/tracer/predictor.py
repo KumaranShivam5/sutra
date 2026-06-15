@@ -113,6 +113,18 @@ def _worker_process_rows(
     return sum_canvas, cnt_canvas
 
 
+
+
+from sutra.tracer.benchmark import estimate_prediction_computation_time
+
+
+
+
+
+
+
+
+
 # ----------------------------------------------------------------------
 #  PUBLIC API – unchanged signature, only the internal logic moved
 # ----------------------------------------------------------------------
@@ -516,6 +528,40 @@ class filamentIdentifier():
         model = get_model_from_weights(proc.chunk_params['size'])
         model.load_weights(to_abs_path(model_weights))
         self.model = model
+
+    def get_model_details(self, print=False , brief=True):
+        summary_list = []
+        self.model.summary(print_fn=lambda x: summary_list.append(x))
+        summary_string = "\n".join(summary_list)
+        if brief:
+            deets = {
+                "Total Layers" : len(self.model.layers),
+                "Total Params" : self.model.count_params(), 
+                "Input Shape" : f"{self.model.input_shape}", 
+                "Output Shape " : f"{self.model.output_shape}",
+            }
+            return deets
+        return summary_string
+    
+    def computation_cost(self, cd, batch_size=None , window_overlap_frac = 0.75, n_jobs = 1):
+        # Determine the spatial size of a single model input tile
+        chunk_shape = self.model.input_shape[1:-1]          # (H, W, C) → (H, W)
+        ovlp = int(chunk_shape[0] * window_overlap_frac)   # symmetric overlap
+        overlap = (ovlp, ovlp)
+        # Run tiled inference
+        deets = estimate_prediction_computation_time(
+            image=cd.data,
+            model=self.model,
+            preproc_fns=self.local_mods,
+            global_norm=self.global_mods,
+            chunk_shape=chunk_shape,
+            overlap=overlap,
+            n_jobs=n_jobs,
+            batch_size=batch_size,
+        )
+        return deets
+
+
 
     def predict(self, cd, batch_size=None , window_overlap_frac = 0.75, n_jobs = 1):
         """

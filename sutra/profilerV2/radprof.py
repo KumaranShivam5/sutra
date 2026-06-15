@@ -151,7 +151,7 @@ def reorder_prof(prof_arr , count_thres = 10 ):
     return (cen_x, cen_y,  m_arr , filnum ,adj_dist)
     message("Reordering Done")
 
-
+@st.cache_data
 def _spline_smooth(loc_arr, update=True, max_knots = None):
 
     cen_x , cen_y , filnum ,  adj_dist  = loc_arr
@@ -248,15 +248,26 @@ import pandas as pd
 from sutra.profilerV2.prob2skl import filter_background
 
 class RadProf:
-    def __init__(self, img, skeleton , meta_info = None):
+    def __init__(self, img, skeleton , meta_info = None, bkg_val = None):
         self.img = img.data
         self.header = img.header
         self.hdu = img
         self.skel = skeleton
         self.meta_info = meta_info
+        self.prof_dict = None
+        self.beam_dict = None 
+        self.beamProps = None
         self.hpbw , self.pixel_size = get_beam_size(self.header , self.meta_info['beam'])
-        self.bkg_mask , self.bkg_th = filter_background(img.data)
-    
+        # if bkg_val is not None:
+        #     self.bkg_mask , self.bkg_th = filter_background(img.data, val = bkg_val)
+        # else:
+        #     self.bkg_mask , self.bkg_th = filter_background(img.data)
+        try:
+            self.bkg_mask , self.bkg_th = filter_background(img.data)
+        except :
+            self.bkg_mask = np.ones_like(img.data)
+            self.bkg_th = 0
+
     def _get_sky_dist(self, pixdist):
         # wcs = WCS(self.header)
         tdist = get_sky_dist(self.header, pixdist , self.meta_info['distance'])
@@ -265,6 +276,11 @@ class RadProf:
     # def get_sky_dist(self, pixdist):
 
     # def set_cut_off(self , cut_off_size = None):
+
+    def get_skeleton_fits(self):
+        skel_hdu = fits.PrimaryHDU(data = self.skel , header = self.header)
+        return fits.HDUList([skel_hdu])
+
 
     def pc_to_pixel(self , pcdist):
         #conversion factor
@@ -421,11 +437,11 @@ class RadProf:
 
         beam_arcsec = get_pixel_to_arcsec(self.header , self.hpbw.value)
 
-        message(f"Reconnecting beams using MST | Distance tolerance {2*beam_arcsec:.2f} arcsec ({self.hpbw.value:.0f} pix) ", 3)
+        message(f"Reconnecting beams using MST | Distance tolerance {(stride+1)*beam_arcsec:.2f} arcsec ({self.hpbw.value:.0f} pix) ", 3)
         # rejoin skeleton using MST
         new_beam_filament_index , _ , _ = get_connected_struct_from_mst(
             xb, yb, beam_filament_index , 
-            distance_tol = 2*self.hpbw.value)
+            distance_tol = (stride+1)*self.hpbw.value)
         new_beam_filament_index = np.copy(beam_filament_index)
         
 
@@ -475,8 +491,8 @@ class RadProf:
 
         props['Length'] = larr
         props['Slope'] = np.arctan(self.beam_dict['slope'])
-        props['Rbg_r'] = Rbg_r
-        props['Rbg_l'] = Rbg_l
+        props['Rbg_R'] = Rbg_r
+        props['Rbg_L'] = Rbg_l
         # props['Rbg_s'] = Rbg_l+Rbg_r
         props['LMD'] = lmdarr 
 
@@ -500,7 +516,16 @@ class RadProf:
         return self.beamProps
     
 
-    def plot_filament(self, findx , sizeby = "Pi-L" , colorby = 'LMD' , ax = None, show_beamid = False, sizescale = 1, red_chi_filter = 3, contrast_filter = 0.3 , **cdplot_kwargs):
+    def plot_filament(self, 
+                      findx , 
+                      sizeby = "Rbg_L" , 
+                      colorby = 'LMD' , 
+                      ax = None, 
+                      show_beamid = False, 
+                      sizescale = 1, 
+                      red_chi_filter = 3, 
+                      contrast_filter = 0.3 , 
+                      **cdplot_kwargs):
 
 
         fprops = self.beamProps.loc[findx]
@@ -519,15 +544,15 @@ class RadProf:
 
         selected = np.asarray(self.img)[xmin:xmax, ymin:ymax]
         sel_cd = np.asarray(self.img)[xmin:xmax, ymin:ymax]
-        vmin , vmax = np.percentile(sel_cd, q = [2,90])
+        vmin , vmax = np.nanpercentile(sel_cd, q = [2,98])
 
         sel_skl = np.asarray(self.skel)[xmin:xmax, ymin:ymax]
         
-        ax.imshow(self.img , cmap = 'Greys_r', norm = 'log', vmin = vmin, vmax = vmax,)
-        ax.contour(self.skel, colors = 'r', linewidths = 0.2, alpha = 0.2, zorder  =1, )
+        ax.imshow(self.img , cmap = 'gist_heat', norm = 'log', vmin = vmin, vmax = vmax,)
+        ax.contour(self.skel, colors = 'b', linewidths = 0.2, alpha = 0.2, zorder  =1, )
         ax.plot([],[], c = 'r', label='Skeleton', lw  = 1)
         to_plot = fprops[fprops['flag']]
-        sc = ax.scatter(to_plot['Y'] , to_plot['X'], c = to_plot[colorby], s = sizescale*to_plot[sizeby] , cmap = 'Reds', zorder = 3, vmin=0, vmax = 3, label='size')
+        sc = ax.scatter(to_plot['Y'] , to_plot['X'], c = to_plot[colorby], s = sizescale*to_plot[sizeby] , cmap = 'Reds_r', zorder = 3, label='size')
         xl, yl = self.beam_dict['low'][:,beam_index]
         xh, yh = self.beam_dict['high'][:,beam_index]
 
@@ -552,23 +577,46 @@ class RadProf:
         ax.set_xlim(ymin-10, ymax+10)
         return ax
     
-    def plot_props(self, sizeby = "Pi-L" , colorby = 'LMD' , ax = None, show_filid = False, sizescale = 1, red_chi_filter = 3, **cdplot_kwargs):
+    def plot_props(self, 
+                   sizeby = "Pi-L" , 
+                   colorby = 'LMD' , 
+                   ax = None, 
+                   show_filid = False, 
+                   sizescale = 1, 
+                   red_chi_filter = 3, 
+                   cmap='Greys_r',
+                   norm='log',
+                   return_fig = False ,
+                   **cdplot_kwargs):
         if ax is None:
-            plt.figure(figsize=(8,6))
+            fig = plt.figure(figsize=(8,6))
             ax = plt.subplot(111, projection = WCS(self.header))
-        vmin , vmax = np.percentile(self.img, q = [2,98])
+        vmin , vmax = np.nanpercentile(self.img, q = [2,98])
+
+        imshow_kwargs = dict(cmap=cmap, norm=norm, vmin=vmin, vmax=vmax)
+        imshow_kwargs.update(cdplot_kwargs)  
         
-        ax.imshow(self.img , cmap = 'Greys_r', norm = 'log', vmin = vmin, vmax = vmax, **cdplot_kwargs)
+        ax.imshow(self.img , **imshow_kwargs)
 
         ax.contour(self.skel, colors = 'r', linewidths = 0.1, alpha = 1, zorder  =1)
         props = self.beamProps
         to_plot = props[props['red-chi']<=red_chi_filter]
-        print(len(to_plot))
+        # print(len(to_plot))
 
         # cmap_dict = {}
 
         if colorby=='red-chi':
-            sc = ax.scatter(to_plot['Y'] , to_plot['X'], c = to_plot[colorby], s = sizescale*to_plot[sizeby] , cmap = 'RdYlGn_r', zorder = 3 , vmin = 1, vmax = 3)
+            sc = ax.scatter(to_plot['Y'] , 
+                            to_plot['X'], 
+                            c = to_plot[colorby], 
+                            s = sizescale*to_plot[sizeby] , 
+                            cmap = 'Spectral_r', 
+                            # cmap = 'RdYlGn_r', 
+                            edgecolor = 'k',
+                            zorder = 3 , 
+                            vmin = 1, vmax = 3)
+        elif colorby=='filID' : 
+            sc = ax.scatter(to_plot['Y'] , to_plot['X'], c = 1e21*to_plot.reset_index()['filID'], s = sizescale*to_plot[sizeby], cmap = 'Reds',  norm='log',)
         elif colorby=='Nfil':
             sc = ax.scatter(to_plot['Y'] , to_plot['X'], c = 1e21*to_plot['Nfil'], s = sizescale*to_plot[sizeby], cmap = 'Reds',  norm='log',)
         else: 
@@ -591,7 +639,8 @@ class RadProf:
         # cbar1.set_label(colorby)
         
         plt.tight_layout()
-        return ax , sc
+        if return_fig: return fig
+        else: return ax , sc
 
 
 def split_array(arr1, arr2):
