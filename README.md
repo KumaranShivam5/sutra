@@ -102,7 +102,7 @@ skel = run_skel(prob_map, th_max = th_max, bkg_mask=None, beam_size=12, prune = 
 
 ```
 
-![png](readme_images/Sutra-demo_10_0.png)
+![png](sutra/readme_images/Sutra-demo_10_0.png)
     
 ### Use Skeleton for measuring filament properties
 
@@ -127,21 +127,21 @@ monr2aprof.get_all_beam_props() # Compute beam level properties
 ```python
 monr2aprof.plot_props(sizescale=0.5, sizeby='Wbg', show_filid=True, red_chi_filter=5, colorby='Nfil')
 ```
-![png](readme_images/Sutra-demo_14_1.png)
+![png](sutra/readme_images/Sutra-demo_14_1.png)
 
 ### Plot a selected Filament
 
 ```python
 monr2aprof.plot_filament(49, sizescale=10, red_chi_filter=5, sizeby='Wbg', show_beamid=True)
 ```
-![png](readme_images/Sutra-demo_15_1.png)
+![png](sutra/readme_images/Sutra-demo_15_1.png)
 
 ### Inspect the Radial profile fit of selected beam
 
 ```python
 monr2aprof.beam_dict['beam_elements'][374].plot_plummer()
 ```
-![png](readme_images/Sutra-demo_16_0.png)
+![png](sutra/readme_images/Sutra-demo_16_0.png)
 
 ### Access the Properties map data-table
 ```python
