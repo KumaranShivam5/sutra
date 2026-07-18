@@ -65,7 +65,8 @@ class filProfile():
         '''
         if (beam is None): beam = self.beam
         if self.smooth_prof is None:
-            gk = Gaussian1DKernel(stddev=beam / 2.355) # gaussian kernel using beam size given by the HPBW in radProf class
+            gk = Gaussian1DKernel(stddev=beam/3/ 2.355) # gaussian kernel using beam size given by the HPBW in radProf class
+            
             colden_smooth = convolve(self.prof , gk, boundary='extend')
             self.smooth_prof = colden_smooth
 
@@ -188,7 +189,7 @@ class fitProf():
             rbg = self.r_bg
         # print(self.slope)
         ax.plot(dist , self.slope, c = 'lightgray', lw=1, label = 'Slope')
-        ax.plot(dist , self.smooth_slope ,c = 'k' , lw=1, label = 'Convolved slope')
+        ax.plot(dist , self.smooth_slope ,c = 'red' , lw=1, label = 'Convolved slope')
         # ax.set_ylim(-0.3,0.3)
         ax.axhline(0,  lw=1, ls='--')
         # ax.set_xscale('log')
@@ -367,12 +368,12 @@ class profGroup():
             prof = self.med_prof_right
             max_r_indx = props['RF']['R_bg_index']
             r_r , r_profcd , r_prof_err = prof[0][:max_r_indx] , prof[1][:max_r_indx] , prof[3][:max_r_indx]
-            r_param , r_pcov, r_modelcd , r_rc = _curve_fit(r_r , r_profcd , r_prof_err, beam=self.beam)
+            r_param , r_param_e, r_modelcd , r_rc = _curve_fit(r_r , r_profcd , r_prof_err, beam=self.beam)
 
             prof = self.med_prof_left
             max_r_indx = props['LF']['R_bg_index']
             l_r , l_profcd , l_prof_err = prof[0][:max_r_indx] , prof[1][:max_r_indx] , prof[3][:max_r_indx]
-            l_param , l_pcov, l_modelcd , l_rc = _curve_fit(l_r , l_profcd , l_prof_err, beam=self.beam)
+            l_param , l_param_e, l_modelcd , l_rc = _curve_fit(l_r , l_profcd , l_prof_err, beam=self.beam)
             
             l , r = (l_profcd , l_prof_err , l_modelcd) , (r_profcd , r_prof_err , r_modelcd) 
             all_model = np.append( l[2][::-1] , r[2])
@@ -397,8 +398,12 @@ class profGroup():
         fit_dict = {
                 "Pi-R" :  r_param[2],
                 "Pi-L" : l_param[2] ,
+                "Pi-R_e" :  r_param_e[2],
+                "Pi-L_e" : l_param_e[2] ,
                 "Rflat_R" : r_param[1] ,
+                "Rflat_R_e" : r_param_e[1] ,
                 "Rflat_L" : l_param[1] ,
+                "Rflat_L_e" : l_param_e[1] ,
                 "Nfil" : np.nanmean([l_param[0] , r_param[0]]),
                 "Nfil_L" : l_param[0], 
                 "Nfil_R" :r_param[0], 
@@ -418,7 +423,7 @@ class profGroup():
         rlabel = 'r (pixels)'
         ax1.errorbar(r, prof[1],yerr=prof[2],  ls=":", zorder = 1 )
         ax1.plot(r[:len(self.model_left)], 
-                 self.model_left, c = 'k', zorder = 2, lw = 1,
+                 self.model_left, c='red', zorder = 2, lw = 1,
                  )
         ax1.invert_xaxis()
         
@@ -427,7 +432,7 @@ class profGroup():
         rlabel = 'r (pixels)'
         ax3.errorbar(r, prof[1],yerr=prof[2], label = 'Data', ls=":" , zorder = 1)
         ax3.plot(r[:len(self.model_right)], 
-                 self.model_right, c = 'k', zorder = 2, lw=1 ,
+                 self.model_right,  zorder = 2, lw=1 , c = 'red' , 
                  label = f'model | $\chi^2 = {self.red_chi[0]:.2f}$')
         
         ax3.label_outer()
@@ -447,4 +452,6 @@ class profGroup():
 
         ax3.legend(fontsize = 11 )
         plt.subplots_adjust(hspace=0.15, wspace = 0.)
+
+        return fig
         # plt.tight_layout()
