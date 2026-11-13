@@ -2,7 +2,7 @@
 _An integrated Framework for identificaiton and characterisation of filaments in the ISM_
 
 > Shivam Kumaran $^*$, Ushasi Bhowmick, Vipin Kumar, Manish Chauhan, Munn V Shukla, Mehul R Pandya
-- $*$ kumaranshivam57@gmail.com, kumaran@sac.isro.gov.in
+- kumaranshivam57@gmail.com, kumaran@sac.isro.gov.in
 ---
 
 poster presented at ASI - 2026 : https://sutra.zenkumaran.in
